@@ -27,12 +27,7 @@ export const signupHandler = async (req, res) => {
     if (newUser) {
       generateToken(newUser._id, res);
       await newUser.save();
-      return res.status(201).json({ message: "User created successfully",
-        _id: newUser._id,
-        email: newUser.email,
-        fullName: newUser.fullName,
-        profilePic: newUser.profilePic,
-      });
+      return res.status(201).json({ message: "User created successfully", user: newUser});
     } else {
       res.status(400).json({ message: "User creation failed" });
     }
@@ -62,10 +57,7 @@ export const loginHandler = async (req, res) => {
     generateToken(user._id, res);
     return res.status(200).json({
       message: "Login successful",
-      _id: user._id,
-      email: user.email,
-      fullName: user.fullName,
-      profilePic: user.profilePic,
+      user
     });
   } catch (error) {
     console.log("Error in loginHandler:", error);
@@ -106,10 +98,7 @@ export const updateProfileHandler = async (req, res) => {
     //tell that successfully updated + return the updated user data!
     return res.status(200).json({
       message: "Profile updated successfully",
-      _id: updatedUser._id,
-      email: updatedUser.email,
-      fullName: updatedUser.fullName,
-      profilePic: updatedUser.profilePic,
+      user: updatedUser
     });
   } catch (error) {
     console.log("Error in updateProfileHandler:", error);
@@ -126,12 +115,7 @@ export const checkAuthHandler = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    return res.status(200).json({
-      _id: user._id,
-      email: user.email,
-      fullName: user.fullName,
-      profilePic: user.profilePic,
-    });
+    return res.status(200).json({user});
   } catch (error) {
     console.log("Error in checkAuthHandler:", error);
     res.status(500).json({ message: "Internal server error", error: error.message});

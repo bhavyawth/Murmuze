@@ -14,7 +14,7 @@ router.post("/signup", signupHandler);
 router.post("/login", loginHandler);
 router.post("/logout",protectRoute, logoutHandler);
 
-router.put("/updateProfile", protectRoute, updateProfileHandler);
+router.put("/profile", protectRoute, updateProfileHandler);
 
 router.get("/check", protectRoute, checkAuthHandler);
 
