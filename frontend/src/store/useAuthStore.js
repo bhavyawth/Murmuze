@@ -77,5 +77,33 @@ export const useAuthStore = create((set) => ({
     }
   },
 
+  logout: async () => {
+    try {
+      const response = await axiosInstance.post('/auth/logout');
+      set({ authUser: null });
+
+      toast.success('Logged Out!', {
+        style: {
+          border: '1px solid #28a745',
+          padding: '16px',
+          color: '#155724',
+          background: '#d4edda',
+          fontWeight: '500',
+          borderRadius: '8px',
+        },
+        iconTheme: {
+          primary: '#28a745',
+          secondary: '#f0fdf4',
+        },
+      });
+      setTimeout(() => {
+        navigate('/');
+      }, 1200);
+    } catch (error) {
+      console.error('Logout failed:', error);
+      toast.error(error?.response?.data?.message || 'Logout failed!');
+    }
+  }
+
 
 }));
