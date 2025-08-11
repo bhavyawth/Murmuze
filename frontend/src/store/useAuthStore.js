@@ -2,15 +2,21 @@
 import { create } from 'zustand';
 import { axiosInstance } from '../lib/axios';
 import toast from 'react-hot-toast';
+import { io } from 'socket.io-client';
 
-export const useAuthStore = create((set) => ({
+const BASE_URL = import.meta.env.MODE === "development" ? "http://localhost:5001" : "/";
+
+export const useAuthStore = create((set, get) => ({
   authUser: null,
   isCheckingAuth: true,
+  onlineUsers: [],
+  socket: null,
 
   checkAuth: async () => {
     try {
       const res = await axiosInstance.get('/auth/check');
       set({authUser: res.data.user});
+      get().connectSocket();
     } catch (error) {
       console.error('Error checking auth:', error);
       set({authUser: null});
@@ -38,6 +44,7 @@ export const useAuthStore = create((set) => ({
           secondary: '#f0fdf4',
         },
       });
+      get().connectSocket();
       setTimeout(() => {
         navigate('/');
       }, 1200);
@@ -66,6 +73,7 @@ export const useAuthStore = create((set) => ({
           secondary: '#f0fdf4',
         },
       });
+      get().connectSocket();
       setTimeout(() => {
         navigate('/');
       }, 1200);
@@ -94,6 +102,7 @@ export const useAuthStore = create((set) => ({
           secondary: '#f0fdf4',
         },
       });
+      get().disconnectSocket();
       setTimeout(() => {
         navigate('/');
       }, 1200);
@@ -124,6 +133,36 @@ export const useAuthStore = create((set) => ({
     } catch (error) {
       console.error('Profile update failed:', error);
       toast.error(error?.response?.data?.message || 'Profile update failed!');
+    }
+  },
+
+  connectSocket: () => {
+    const { authUser } = get();
+    if (!authUser || get().socket?.connected) {
+      return;
+    }
+    const socket = io(BASE_URL,
+      {
+        query : {
+          userId: authUser._id,
+        }
+      }
+    );
+    socket.connect();
+    set({ socket });
+
+    socket.on('getOnlineUsers', (onlineUsers) => {
+      set({ onlineUsers });
+      console.log('Online users updated:', onlineUsers);
+    });
+  },
+
+  disconnectSocket: () => {
+    const { socket } = get();
+    if (socket?.connected) {
+      socket.disconnect();
+      set({ socket: null });
+      console.log('Socket disconnected');
     }
   },
 

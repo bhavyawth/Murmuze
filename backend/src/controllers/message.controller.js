@@ -1,5 +1,8 @@
 import User from "../models/user.model.js";
 import Message from "../models/message.model.js";
+import mongoose from "mongoose";
+import cloudinary from "../lib/cloudinary.js";
+import { getRecieverSocketId, io } from "../lib/socket.js";
 
 export const getUsersHandler = async (req, res) => {
   try {
@@ -19,10 +22,10 @@ export const getMessagesHandler = async (req, res) => {
 
     const messages = await Message.find({
       $or: [
-        { from: myId, to: userToChatId },
-        { from: userToChatId, to: myId }
+        { senderId: myId, recieverId: userToChatId },
+        { senderId: userToChatId, recieverId: myId }
       ]
-    });
+    }).sort({ createdAt: 1 });
 
     res.status(200).json(messages);
   } catch (error) {
@@ -32,29 +35,34 @@ export const getMessagesHandler = async (req, res) => {
 };
 
 export const sendMessageHandler = async (req, res) => {
- try {
-  const { id: userToChatId } = req.params;
-  const { text, image } = req.body;
-  const myId = req.user._id;
+  try {
+    const { id: userToChatId } = req.params;
+    const { text, image } = req.body;
+    const myId = req.user._id;
 
-  let imageUrl;
-  if (image) {
-    const uploadResponse = await cloudinary.uploader.upload(image);
-    imageUrl = uploadResponse.secure_url;
+    let imageUrl;
+    if (image) {
+      const uploadResponse = await cloudinary.uploader.upload(image);
+      imageUrl = uploadResponse.secure_url;
+    }
+
+    const newMessage = new Message({
+      senderId: myId,
+      recieverId: userToChatId,
+      text: text,
+      image: imageUrl
+    });
+    await newMessage.save();
+    const messageData = newMessage.toObject();
+
+    const recieverSocketId = getRecieverSocketId(userToChatId);
+    if (recieverSocketId) {
+      io.to(recieverSocketId).emit("newMessage", messageData);
+    }
+
+    return res.status(201).json({...messageData});
+  } catch (error) {
+    console.error("Error in sendMessageHandler:", error);
+    res.status(500).json({ message: "Internal server error", error: error.message });
   }
-
-  const newMessage = new Message({
-    from: myId,
-    to: userToChatId,
-    text,
-    image: imageUrl
-  });
-  await newMessage.save();
-
-  //todo: emit the message to the user via socket.io
-  return res.status(201).json({newMessage});
- } catch (error) {
-  console.error("Error in sendMessageHandler:", error);
-  res.status(500).json({ message: "Internal server error", error: error.message });
- }
 };
