@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { useChatStore } from "../store/useChatStore";
 import { useAuthStore } from "../store/useAuthStore";
 import SidebarSkeleton from "./skeletons/SidebarSkeleton";
@@ -9,14 +9,25 @@ const Sidebar = () => {
 
   const { onlineUsers } = useAuthStore();
   const [showOnlineOnly, setShowOnlineOnly] = useState(false);
+  const [matchingUserPattern, setMatchingUserPattern] = useState("");
+
+  const handleMatchingUserPatternChange = (e) => { //to filter users based on input
+    e.preventDefault();
+    setMatchingUserPattern(e.target.value);
+  }
 
   useEffect(() => {
     getUsers();
   }, [getUsers]);
 
-  const filteredUsers = showOnlineOnly
-    ? users.filter((user) => onlineUsers.includes(user._id))
-    : users;
+  const filteredUsers = users.filter(user => {
+    if (showOnlineOnly && !onlineUsers.includes(user._id)) return false;
+    if (matchingUserPattern.trim() !== "") {
+      return user.fullName.toLowerCase().includes(matchingUserPattern.toLowerCase());
+    }
+    return true;
+  });
+
 
   if (isUsersLoading) return <SidebarSkeleton />;
 
@@ -28,7 +39,7 @@ const Sidebar = () => {
           <span className="font-medium hidden lg:block">Contacts</span>
         </div>
         {/* TODO: Online filter toggle */}
-        <div className="mt-3 hidden lg:flex items-center gap-2">
+        <div className="mt-3 hidden lg:flex items-center gap-2 pb-3">
           <label className="cursor-pointer flex items-center gap-2">
             <input
               type="checkbox"
@@ -40,6 +51,13 @@ const Sidebar = () => {
           </label>
           <span className="text-xs text-zinc-500">({onlineUsers?.length - 1} online)</span>
         </div>
+        <input
+          type="text"
+          className="hidden lg:block w-full input input-bordered rounded-lg input-sm sm:input-md"
+          placeholder="Search..."
+          value={matchingUserPattern}
+          onChange={handleMatchingUserPatternChange}
+        />
       </div>
 
       <div className="overflow-y-auto w-full py-3">
@@ -76,10 +94,18 @@ const Sidebar = () => {
             </div>
           </button>
         ))}
-
-        {filteredUsers.length === 0 && (
-          <div className="text-center text-zinc-500 py-4">No online users</div>
+        {filteredUsers.length === 0 && matchingUserPattern.trim() !== "" && (
+          <div className="text-center text-zinc-500 py-4">
+            No users found matching "{matchingUserPattern}"
+          </div>
         )}
+
+        {filteredUsers.length === 0 && matchingUserPattern.trim() === "" && (
+          <div className="text-center text-zinc-500 py-4">
+            {showOnlineOnly ? "No online users available." : "No contacts available."}
+          </div>
+        )}
+
       </div>
     </aside>
   );

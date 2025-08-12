@@ -8,7 +8,7 @@ const HomePage = () => {
   const { selectedUser } = useChatStore();
 
   return (
-    <div className="h-screen bg-base-200 flex items-center justify-center p-10">
+    <div className="h-screen bg-base-200 flex items-center justify-center">
       {/* Outer Card */}
       <div className="bg-base-100 rounded-2xl shadow-xl w-full max-w-7xl h-full md:h-[90vh] overflow-hidden border border-base-300">
         <div className="flex h-full pt-10">
