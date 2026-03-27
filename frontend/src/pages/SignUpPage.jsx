@@ -35,6 +35,9 @@ const SignUpPage = () => {
 
   const onSubmit = async (data) => {
     await signup(data);
+    setTimeout(() => {
+      navigate('/');
+    }, 1600);
   };
 
   return (

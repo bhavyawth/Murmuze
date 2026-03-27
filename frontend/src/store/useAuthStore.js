@@ -45,9 +45,6 @@ export const useAuthStore = create((set, get) => ({
         },
       });
       get().connectSocket();
-      setTimeout(() => {
-        navigate('/');
-      }, 1600);
     } catch (error) {
       console.error('Signup failed:', error);
       toast.error(error?.response?.data?.message || 'Signup failed!');
@@ -74,9 +71,6 @@ export const useAuthStore = create((set, get) => ({
         },
       });
       get().connectSocket();
-      setTimeout(() => {
-        navigate('/');
-      }, 1600);
     } catch (error) {
       console.error('Login failed:', error);
       toast.error(error?.response?.data?.message || 'Login failed!');
@@ -103,9 +97,6 @@ export const useAuthStore = create((set, get) => ({
         },
       });
       get().disconnectSocket();
-      setTimeout(() => {
-        navigate('/');
-      }, 1800);
     } catch (error) {
       console.error('Logout failed:', error);
       toast.error(error?.response?.data?.message || 'Logout failed!');

@@ -35,6 +35,9 @@ const LoginPage = () => {
 
   const onSubmit = async (data) => {
     await login(data);
+    setTimeout(() => {
+      navigate('/');
+    }, 1600);
   };
 
   return (
