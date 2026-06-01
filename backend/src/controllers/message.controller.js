@@ -78,7 +78,7 @@ export const getMessagesHandler = async (req, res) => {
         { senderId: userToChatId, recieverId: myId },
       ],
       isDelivered: true,
-    }).populate("replyTo", "text image audio gif senderId messageType").sort({ createdAt: 1 });
+    }).populate("senderId", "profilePic").populate("replyTo", "text image audio gif senderId messageType").sort({ createdAt: 1 });
     await Message.updateMany(
       { senderId: userToChatId, recieverId: myId, isRead: false },
       { isRead: true, readAt: new Date() }
@@ -133,8 +133,16 @@ export const sendMessageHandler = async (req, res) => {
     const newAchievements = await checkAndAwardAchievements(sender, newMessage);
     await sender.save();
 
-    const messageData = await newMessage.populate("replyTo", "text image audio gif senderId messageType");
-
+    const messageData = await newMessage.populate([
+      {
+        path: "senderId",
+        select: "profilePic",
+      },
+      {
+        path: "replyTo",
+        select: "text image audio gif senderId messageType",
+      },
+    ]);
     if (isDelivered) {
       const receiverSocketId = getRecieverSocketId(userToChatId);
       if (receiverSocketId) io.to(receiverSocketId).emit("newMessage", messageData);

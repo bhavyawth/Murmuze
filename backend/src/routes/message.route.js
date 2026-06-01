@@ -19,7 +19,7 @@ router.get("/users", protectRoute, getUsersHandler);
 router.get("/calls", protectRoute, getCallLogsHandler);
 router.get("/search/:id", protectRoute, searchMessagesHandler);
 router.get("/stats/:id", protectRoute, getChatStatsHandler);
-
+router.get("/send/:id", protectRoute, sendMessageHandler); // for replying to messages with a quote, we need to fetch the original message data first
 // Wildcard last — otherwise /users, /calls etc get swallowed by /:id
 router.get("/:id", protectRoute, getMessagesHandler);
 
