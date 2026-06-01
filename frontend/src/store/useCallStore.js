@@ -3,10 +3,22 @@ import { useAuthStore } from './useAuthStore';
 
 const ICE_SERVERS = {
   iceServers: [
+    // STUN servers - discover public IP
     { urls: 'stun:stun.l.google.com:19302' },
     { urls: 'stun:stun1.l.google.com:19302' },
     { urls: 'stun:stun2.l.google.com:19302' },
     { urls: 'stun:stun3.l.google.com:19302' },
+    // TURN servers - relay media between networks
+    { 
+      urls: ['turn:numb.viagenie.ca:3478', 'turn:numb.viagenie.ca:3478?transport=tcp'],
+      username: 'webrtc@example.com',
+      credential: 'webrtc'
+    },
+    {
+      urls: ['turn:openrelay.metered.ca:80', 'turn:openrelay.metered.ca:443?transport=tcp'],
+      username: 'openrelayproject',
+      credential: 'openrelayproject'
+    },
   ],
 };
 
