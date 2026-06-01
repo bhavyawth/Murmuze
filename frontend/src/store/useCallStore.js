@@ -4,18 +4,36 @@ import toast from 'react-hot-toast';
 
 const ICE_SERVERS = {
   iceServers: [
-    // STUN servers - discover public IP
+    // STUN servers – discover public IP
     { urls: 'stun:stun.l.google.com:19302' },
     { urls: 'stun:stun1.l.google.com:19302' },
     { urls: 'stun:stun2.l.google.com:19302' },
     { urls: 'stun:stun3.l.google.com:19302' },
-    // TURN server - relay media between networks (free tier)
+    { urls: 'stun:stun4.l.google.com:19302' },
+    // TURN servers – relay media across different networks
+    // Metered free TURN (UDP + TCP + TLS)
     {
-      urls: ['turn:openrelay.metered.ca:80', 'turn:openrelay.metered.ca:443'],
-      username: 'openrelayproject',
-      credential: 'openrelayproject'
+      urls: 'turn:a.relay.metered.ca:80',
+      username: 'e8dd65b92f70a38e5c138bd8',
+      credential: '5VfHcfX2YXlMPpGO',
+    },
+    {
+      urls: 'turn:a.relay.metered.ca:80?transport=tcp',
+      username: 'e8dd65b92f70a38e5c138bd8',
+      credential: '5VfHcfX2YXlMPpGO',
+    },
+    {
+      urls: 'turn:a.relay.metered.ca:443',
+      username: 'e8dd65b92f70a38e5c138bd8',
+      credential: '5VfHcfX2YXlMPpGO',
+    },
+    {
+      urls: 'turns:a.relay.metered.ca:443?transport=tcp',
+      username: 'e8dd65b92f70a38e5c138bd8',
+      credential: '5VfHcfX2YXlMPpGO',
     },
   ],
+  iceCandidatePoolSize: 10,
 };
 
 function createPeerConnection(socket, remoteUserId, onRemoteStream, onIceSend) {
@@ -45,8 +63,24 @@ function createPeerConnection(socket, remoteUserId, onRemoteStream, onIceSend) {
     if (event.candidate) onIceSend(event.candidate);
   };
 
+  pc.onicegatheringstatechange = () => {
+    console.log('[WebRTC] ICE gathering state:', pc.iceGatheringState);
+  };
+
+  pc.oniceconnectionstatechange = () => {
+    console.log('[WebRTC] ICE connection state:', pc.iceConnectionState);
+    // Attempt ICE restart on failure
+    if (pc.iceConnectionState === 'failed') {
+      console.warn('[WebRTC] ICE failed – attempting ICE restart');
+      try { pc.restartIce(); } catch (_) { }
+    }
+  };
+
   pc.onconnectionstatechange = () => {
     console.log('[WebRTC] connection state:', pc.connectionState);
+    if (pc.connectionState === 'failed') {
+      console.error('[WebRTC] Peer connection failed');
+    }
   };
 
   // Unique named handler for ICE candidates from the remote peer
@@ -151,7 +185,7 @@ export const useCallStore = create((set, get) => ({
       await pc.setLocalDescription(offer);
 
       console.log('[WebRTC] Emitting callUser to', targetUser._id, 'callId:', callId);
-      socket.emit('callUser', { to: targetUser._id, type, offer: offer.toJSON(), callId });
+      socket.emit('callUser', { to: targetUser._id, type, offer: { type: offer.type, sdp: offer.sdp }, callId });
       set({ activeCall: { userId: targetUser._id, type, callId, startedAt: null }, peerConnection: pc, pcCleanup: cleanup });
 
       socket.once('callAnswered', async ({ answer, callId: aid }) => {
@@ -207,7 +241,7 @@ export const useCallStore = create((set, get) => ({
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
 
-      socket.emit('answerCall', { to: from, answer: answer.toJSON(), callId });
+      socket.emit('answerCall', { to: from, answer: { type: answer.type, sdp: answer.sdp }, callId });
 
       set({
         activeCall: { userId: from, type, callId, startedAt: Date.now() },

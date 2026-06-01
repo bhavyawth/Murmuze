@@ -40,6 +40,9 @@ export const useFriendStore = create((set, get) => ({
       const res = await axiosInstance.post(`/auth/friends/request/${targetId}`);
       if (res.data.status === 'accepted') {
         toast.success('🎉 You are now friends!');
+        // Auto-accepted → also refresh sidebar chat users
+        const { useChatStore } = await import('./useChatStore');
+        useChatStore.getState().getUsers();
       } else {
         toast.success('✉️ Friend request sent!');
       }
@@ -62,6 +65,9 @@ export const useFriendStore = create((set, get) => ({
       await axiosInstance.post(`/auth/friends/accept/${requesterId}`);
       toast.success('🤝 Friend request accepted!');
       await get().loadFriendsData();
+      // Also refresh the sidebar chat users list so the new friend appears immediately
+      const { useChatStore } = await import('./useChatStore');
+      useChatStore.getState().getUsers();
     } catch (e) {
       toast.error('Failed to accept request');
     }

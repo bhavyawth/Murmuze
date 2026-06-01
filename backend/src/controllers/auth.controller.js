@@ -122,7 +122,9 @@ export const sendFriendRequestHandler = async (req, res) => {
       await Promise.all([me.save(), target.save()]);
       // Notify both via socket
       const targetSocket = getRecieverSocketId(targetId);
-      if (targetSocket) io.to(targetSocket).emit("friendRequestAccepted", { by: myId });
+      if (targetSocket) io.to(targetSocket).emit("friendRequestAccepted", { by: myId, byName: me.fullName });
+      const mySocket = getRecieverSocketId(myId.toString());
+      if (mySocket) io.to(mySocket).emit("friendRequestAccepted", { by: targetId, byName: target.fullName });
       return res.status(200).json({ message: "Now friends!", status: "accepted" });
     }
 
@@ -155,8 +157,13 @@ export const acceptFriendRequestHandler = async (req, res) => {
     requester.sentRequests = requester.sentRequests.filter(id => id.toString() !== myId.toString());
     await Promise.all([me.save(), requester.save()]);
 
+    // Notify the requester
     const requesterSocket = getRecieverSocketId(requesterId);
     if (requesterSocket) io.to(requesterSocket).emit("friendRequestAccepted", { by: myId, byName: me.fullName });
+
+    // Notify the acceptor (so their sidebar refreshes too)
+    const mySocket = getRecieverSocketId(myId.toString());
+    if (mySocket) io.to(mySocket).emit("friendRequestAccepted", { by: requesterId, byName: requester.fullName });
 
     return res.status(200).json({ message: "Friend request accepted" });
   } catch (error) {
