@@ -76,7 +76,7 @@ export default function MessageBubble({ message }) {
       <div className={`flex items-end gap-2 max-w-[75%] ${isMine ? "flex-row-reverse" : "flex-row"}`}>
         {/* Avatar */}
         <img
-          src={isMine ? (authUser.profilePic || "/avatar.png") : "/avatar.png"}
+          src={isMine ? (authUser.profilePic || "/avatar.png") : (message.senderId?.profilePic || "/avatar.png")}
           className="w-6 h-6 object-cover border border-base-content/10 shrink-0 mb-1"
           alt=""
         />
