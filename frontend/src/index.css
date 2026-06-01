@@ -1,0 +1,134 @@
+@import "tailwindcss";
+@plugin "daisyui" {
+  themes: light --default, dark --prefersdark, cupcake, bumblebee, emerald, corporate, synthwave, retro, cyberpunk, valentine, halloween, garden, forest, aqua, lofi, pastel, fantasy, wireframe, black, luxury, dracula, cmyk, autumn, business, acid, lemonade, night, coffee, winter, dim, nord, sunset;
+}
+
+/* ── Global typography ───────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+:root {
+  --font-display: 'Syne', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --border-sharp: 0px;
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+html { font-family: var(--font-display); }
+body { font-family: var(--font-display); }
+
+/* Monospace for code-like elements */
+.font-mono, code, pre, .mono { font-family: var(--font-mono) !important; }
+
+/* ── Sharp corners override ──────────────────────────────── */
+.btn { border-radius: 0 !important; font-family: var(--font-mono) !important; letter-spacing: 0.05em; font-weight: 600; text-transform: uppercase; font-size: 0.7rem; }
+.input { border-radius: 0 !important; font-family: var(--font-mono) !important; }
+.textarea { border-radius: 0 !important; font-family: var(--font-mono) !important; }
+
+/* ── Scrollbar ───────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: oklch(var(--p) / 0.3); }
+::-webkit-scrollbar-thumb:hover { background: oklch(var(--p) / 0.6); }
+
+/* ── Grid noise texture overlay ──────────────────────────── */
+.grid-bg {
+  background-image:
+    linear-gradient(oklch(var(--p) / 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, oklch(var(--p) / 0.04) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+/* ── Boxy sharp chat bubbles ─────────────────────────────── */
+.chat-bubble {
+  border-radius: 2px !important;
+  font-family: var(--font-display) !important;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+/* ── Glitch text animation ───────────────────────────────── */
+@keyframes glitch {
+  0%, 100% { clip-path: inset(0 0 100% 0); transform: translate(0); }
+  20% { clip-path: inset(20% 0 60% 0); transform: translate(-3px, 1px); }
+  40% { clip-path: inset(50% 0 30% 0); transform: translate(3px, -1px); }
+  60% { clip-path: inset(70% 0 10% 0); transform: translate(-2px, 2px); }
+  80% { clip-path: inset(10% 0 80% 0); transform: translate(2px, -2px); }
+}
+
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+
+@keyframes blink-cursor {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes pulse-ring {
+  0%   { box-shadow: 0 0 0 0 oklch(var(--p) / 0.4); }
+  70%  { box-shadow: 0 0 0 10px oklch(var(--p) / 0); }
+  100% { box-shadow: 0 0 0 0 oklch(var(--p) / 0); }
+}
+
+@keyframes typing-dot {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30%           { transform: translateY(-6px); opacity: 1; }
+}
+
+.animate-slide-up      { animation: slide-up 0.4s var(--ease-expo) both; }
+.animate-slide-in-right { animation: slide-in-right 0.35s var(--ease-expo) both; }
+.animate-fade-in       { animation: fade-in 0.3s ease both; }
+.animate-pulse-ring    { animation: pulse-ring 1.5s infinite; }
+.animate-blink         { animation: blink-cursor 1s step-end infinite; }
+
+.typing-dot-1 { animation: typing-dot 1.2s ease infinite 0ms; }
+.typing-dot-2 { animation: typing-dot 1.2s ease infinite 150ms; }
+.typing-dot-3 { animation: typing-dot 1.2s ease infinite 300ms; }
+
+/* ── Corner accent decoration ────────────────────────────── */
+.corner-accent {
+  position: relative;
+}
+.corner-accent::before,
+.corner-accent::after {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-color: oklch(var(--p));
+  border-style: solid;
+}
+.corner-accent::before {
+  top: 0; left: 0;
+  border-width: 2px 0 0 2px;
+}
+.corner-accent::after {
+  bottom: 0; right: 0;
+  border-width: 0 2px 2px 0;
+}
+
+/* ── Message send animation ──────────────────────────────── */
+.msg-enter {
+  animation: slide-up 0.3s var(--ease-expo) both;
+}
+
+/* ── Active call pulse ───────────────────────────────────── */
+.call-active-dot {
+  animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+}
