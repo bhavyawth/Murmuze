@@ -40,7 +40,7 @@ export const useChatStore = create((set, get) => ({
     if (!socket) return;
 
     socket.on("newMessage", (newMessage) => {
-      const isFromSelected = newMessage.senderId === selectedUser._id;
+      const isFromSelected = newMessage.senderId._id === selectedUser._id;
       if (isFromSelected) {
         set(state => ({ messages: [...state.messages, newMessage] }));
         // Mark as read immediately since chat is open
@@ -50,7 +50,7 @@ export const useChatStore = create((set, get) => ({
         set(state => ({
           unreadCounts: {
             ...state.unreadCounts,
-            [newMessage.senderId]: (state.unreadCounts[newMessage.senderId] || 0) + 1,
+            [newMessage.senderId._id]: (state.unreadCounts[newMessage.senderId._id] || 0) + 1,
           }
         }));
       }
