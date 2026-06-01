@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { useAuthStore } from './useAuthStore';
+import toast from 'react-hot-toast';
 
 const ICE_SERVERS = {
   iceServers: [
@@ -8,14 +9,9 @@ const ICE_SERVERS = {
     { urls: 'stun:stun1.l.google.com:19302' },
     { urls: 'stun:stun2.l.google.com:19302' },
     { urls: 'stun:stun3.l.google.com:19302' },
-    // TURN servers - relay media between networks
-    { 
-      urls: ['turn:numb.viagenie.ca:3478', 'turn:numb.viagenie.ca:3478?transport=tcp'],
-      username: 'webrtc@example.com',
-      credential: 'webrtc'
-    },
+    // TURN server - relay media between networks (free tier)
     {
-      urls: ['turn:openrelay.metered.ca:80', 'turn:openrelay.metered.ca:443?transport=tcp'],
+      urls: ['turn:openrelay.metered.ca:80', 'turn:openrelay.metered.ca:443'],
       username: 'openrelayproject',
       credential: 'openrelayproject'
     },
@@ -31,7 +27,7 @@ function createPeerConnection(socket, remoteUserId, onRemoteStream, onIceSend) {
   const flushQueue = async () => {
     while (iceCandidateQueue.length) {
       const c = iceCandidateQueue.shift();
-      try { await pc.addIceCandidate(new RTCIceCandidate(c)); } catch (_) {}
+      try { await pc.addIceCandidate(new RTCIceCandidate(c)); } catch (_) { }
     }
   };
 
@@ -58,7 +54,7 @@ function createPeerConnection(socket, remoteUserId, onRemoteStream, onIceSend) {
   const iceHandler = async ({ candidate, from }) => {
     if (from !== remoteUserId) return;
     if (remoteDescSet) {
-      try { await pc.addIceCandidate(new RTCIceCandidate(candidate)); } catch (_) {}
+      try { await pc.addIceCandidate(new RTCIceCandidate(candidate)); } catch (_) { }
     } else {
       iceCandidateQueue.push(candidate);
     }
@@ -128,12 +124,17 @@ export const useCallStore = create((set, get) => ({
 
   initiateCall: async (targetUser, type) => {
     const socket = useAuthStore.getState().socket;
-    if (!socket) return;
+    if (!socket) {
+      console.error('[WebRTC] Socket not available');
+      return;
+    }
     const callId = `call_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    console.log('[WebRTC] Starting', type, 'call to', targetUser.fullName, targetUser._id);
 
     try {
       const constraints = type === 'video' ? { video: true, audio: true } : { audio: true, video: false };
       const localStream = await navigator.mediaDevices.getUserMedia(constraints);
+      console.log('[WebRTC] Got local stream, tracks:', localStream.getTracks().length);
       set({ localStream });
 
       const { pc, setRemoteDone, cleanup } = createPeerConnection(
@@ -149,6 +150,7 @@ export const useCallStore = create((set, get) => ({
       const offer = await pc.createOffer({ offerToReceiveAudio: true, offerToReceiveVideo: type === 'video' });
       await pc.setLocalDescription(offer);
 
+      console.log('[WebRTC] Emitting callUser to', targetUser._id, 'callId:', callId);
       socket.emit('callUser', { to: targetUser._id, type, offer, callId });
       set({ activeCall: { userId: targetUser._id, type, callId, startedAt: null }, peerConnection: pc, pcCleanup: cleanup });
 
@@ -172,7 +174,8 @@ export const useCallStore = create((set, get) => ({
       });
 
     } catch (err) {
-      console.error('[WebRTC] initiateCall error:', err);
+      console.error('[WebRTC] initiateCall error:', err.message, err);
+      toast.error('Failed to start call: ' + err.message);
       get().endCall();
     }
   },
