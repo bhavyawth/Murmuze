@@ -151,7 +151,7 @@ export const useCallStore = create((set, get) => ({
       await pc.setLocalDescription(offer);
 
       console.log('[WebRTC] Emitting callUser to', targetUser._id, 'callId:', callId);
-      socket.emit('callUser', { to: targetUser._id, type, offer, callId });
+      socket.emit('callUser', { to: targetUser._id, type, offer: offer.toJSON(), callId });
       set({ activeCall: { userId: targetUser._id, type, callId, startedAt: null }, peerConnection: pc, pcCleanup: cleanup });
 
       socket.once('callAnswered', async ({ answer, callId: aid }) => {
@@ -207,7 +207,7 @@ export const useCallStore = create((set, get) => ({
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
 
-      socket.emit('answerCall', { to: from, answer, callId });
+      socket.emit('answerCall', { to: from, answer: answer.toJSON(), callId });
 
       set({
         activeCall: { userId: from, type, callId, startedAt: Date.now() },
